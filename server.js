@@ -1,20 +1,26 @@
+
 const express = require("express");
-const db = require("./db/connection");
-const apiRoutes = require("./routes/apiRoutes");
 const inquirer = require("inquirer");
-const Connection = require("mysql2/typings/mysql/lib/Connection");
+const connection = require("./db/connection");
+const apiRoutes = require("./routes/apiRoutes");
+
 const consoleTables = require("console.table");
+const { removeAllListeners } = require("process");
 
-var manager = [];
-var roles = [];
-var employees = [];
-
-const PORT = process.env.PORT || 3001;
 const app = express();
 
-const getManager = () => {
+// Express middleware
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
-}
+var manager = [''];
+var roles = [''];
+var employees = [''];
+var department = [''];
+
+const PORT = process.env.PORT || 3001;
+
+
 
 const promptUser = () => {
   return inquirer
@@ -33,6 +39,8 @@ const promptUser = () => {
           "Remove An Employee",
           "Add A Role",
           "Add A Department",
+          "Exit",
+
         ],
       },
     ])
@@ -74,8 +82,11 @@ const promptUser = () => {
           promptAddDepartments();
           break;
 
+        case "Exit":
+          process.exit(0);
+
         default:
-          Connection.end();
+          connection.end();
       }
     });
 };
@@ -90,7 +101,7 @@ const promptAllDepartments = () => {
   Now viewing all Departments
   ===========================
   `);
-  connection.query(`SELECT * FROM depertment`, (err, res) => {
+  connection.query(`SELECT * FROM department`, (err, res) => {
     if (err) throw err;
     console.table(res);
     promptUser();
@@ -99,15 +110,21 @@ const promptAllDepartments = () => {
 
 const promptAddDepartments = () => {
   return inquirer
-  .prompt([
-    {
-      type: "input",
-      name: "dep_name",
-      message: "Enter a new department name"
-    }
-  ]).then(answer) => {
-
-  }
+    .prompt([
+      {
+        type: "input",
+        name: "dep_name",
+        message: "Enter a new department name",
+      },
+    ])
+    .then((answer) => {
+      connection.query(`INSERT INTO department dep_name`);
+      values(`${answer.dep_name}`),
+        (err, res) => {
+          if (err) throw err;
+          promptUser();
+        };
+    });
 };
 
 const promptAllRoles = () => {
@@ -139,7 +156,42 @@ const promptAllRoles = () => {
   // });
 };
 
-const promptAddRole = () => {};
+const promptAddRole = () => {
+  return inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "job_title",
+        message: "Enter a new role",
+      },
+      {
+        type: "input",
+        name: "job_id",
+        message: "Enter a new role id ",
+      },
+      {
+        type: "list",
+        name: "dep_name",
+        message: "Enter the department for this role",
+        choices: department,
+      },
+      {
+        type: "input",
+        name: "salary",
+        message: "Enter a new department name",
+      },
+    ])
+    .then((answer) => {
+      connection.query(
+        `INSERT INTO roles job_title, job_id, dep_name, salary)
+      Values('${answer.job_title}', '${answer.job_id}', '${answer.dep_name}', ${answer.salary})`,
+        (err, res) => {
+          if (err) throw err;
+          promptUser();
+        }
+      );
+    });
+};
 
 const promptAllEmployees = () => {
   console.log(`
@@ -150,7 +202,7 @@ const promptAllEmployees = () => {
   connection.query(`SELECT * FROM employee`, (err, res) => {
     if (err) throw err;
     console.table(res);
-    promptUser()
+    promptUser();
   });
 };
 
@@ -165,7 +217,7 @@ Now viewing all Employees by Department
       type: "list",
       name: "manager",
       message: "choose a department id",
-      choices: managers,
+      choices: department,
     })
     .then((answer) => {
       connection.query(
@@ -173,83 +225,122 @@ Now viewing all Employees by Department
         (err, res) => {
           if (err) throw err;
           console.table(res);
-          promptUser()
+          promptUser();
         }
       );
     });
 };
 
-const promptAllEmployeesByManager = () => {
+const promptAllEmployeesByManager = () => { 
+   let managerArray = []
+
+  connection.query(`SELECT * FROM employee;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((managerName,) => {
+      managerArray.push(managerName.last_name)
+    })
+    return managerArray
+   })
   console.log(`
   ====================================
   Now viewing all Employees by Manager
   ====================================
   `);
+
   return inquirer
     .prompt({
       type: "list",
       name: "manager",
-      message: "choose a managers id",
-      choices: managers,
+      message: "choose a manager",
+      choices: managerArray,
     })
     .then((answer) => {
       connection.query(
-        `SELECT first_name, last_name FROM employee WHERE job_id = ${answer.manager};`,
+        `SELECT first_name, last_name FROM employee WHERE job_id = ${answer.last_name};`,
         (err, res) => {
           if (err) throw err;
           console.table(res);
-          promptUser()
+          promptUser();
         }
       );
     });
 };
 
 const promptAddEmployee = () => {
+   let roleArray = []
+   let managerArray = []
+
+   connection.query(`SELECT * FROM roles;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((roleName) => {
+      roleArray.push(roleName.job_title)
+    })
+    return roleArray
+   })
+
+   connection.query(`SELECT * FROM employee;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((managerName,) => {
+      managerArray.push(managerName.last_name)
+    })
+    return managerArray
+   })
+
   return inquirer
   .prompt([
-    {
-      type: "input",
-      name: "first_name",
-      message: "Enter a first name. "
-    },
-    
-    {
-      type: "input",
-      name: "last_name",
-      message: "Enter a last name. ",
-      
-    }, 
-    
-    {
-      type: "list",
-      name: "role",
-      message: "Select a position. ",
-      choices: roles
-    },
-    
-    {
-      type: "list",
-      name: "manager",
-      message: "Select a manager. ",
-      choices: managers
-    }
+      {
+        type: "input",
+        name: "first_name",
+        message: "Enter a first name. ",
+      },
 
-  ]).then((answer) => {
-    if (answer.manager === "none") {
-      connection.query(`INSERT INTO employee (first_name, last_name, dep_id, manager_id)
-      Values ('${answer.first_name}', '${answer.last_name}', '${answer.dep_id}', null)`, (err, res) => {
-        if (err) throw err
-        promptUser()
-      })
-    }
-    else {
-      connection.query(`INSERT INTO employee (first_name, last_name, dep_id, manager_id)
-      Values ('${answer.first_name}', '${answer.last_name}', '${answer.dep_id}', ${answer.manager_id})`, (err, res) => {
-        if (err) throw err
-        promptUser()
-      })
-    }
-  })
+      {
+        type: "input",
+        name: "last_name",
+        message: "Enter a last name. ",
+      },
+
+      {
+        type: "list",
+        name: "role",
+        message: "Select a position. ",
+        choices: roleArray,
+      },
+
+      {
+        type: "list",
+        name: "manager",
+        message: "Select a manager. ",
+        choices: managerArray,
+      },
+    ])
+    .then((answer) => {
+      if (answer.manager === "none") {
+        connection.query(
+          `INSERT INTO employee (First_Name, Last_Name, job_title, last_name)
+      Values ('${answer.first_name}', '${answer.last_name}', '${answer.job_title}', '${answer.last_name}')`,
+          (err, res) => {
+            if (err) throw err;
+            promptUser();
+          }
+        );
+      } else {
+        connection.query(
+          `INSERT INTO employee (First_Name, Last_Name, job_title, last_name)
+          Values ('${answer.First_Name}', '${answer.Last_Name}', '${answer.job_title}', '${answer.last_name}')`,
+          (err, res) => {
+            if (err) throw err;
+            promptUser();
+          }
+        );
+      }
+    });
 };
 
 app.use(express.urlencoded({ extended: false }));
@@ -261,10 +352,12 @@ app.use((req, res) => {
   res.status(404).end();
 });
 
-db.connect((err) => {
+connection.connect((err) => {
   if (err) throw err;
   console.log("Database connected.");
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    promptUser()
   });
 });
+

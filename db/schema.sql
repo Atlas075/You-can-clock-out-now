@@ -13,7 +13,7 @@ CREATE TABLE employee (
     job_id INTEGER NOT NULL,
     dep_id INTEGER NOT NULL,
     salary INTEGER NOT NULL,
-    manager_id INTEGER NOT NULL
+    manager_name VARCHAR(30)
 );
 
 CREATE TABLE department (

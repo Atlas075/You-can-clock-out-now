@@ -11,23 +11,23 @@ VALUES
 
 
 INSERT INTO employee
-(emp_id, First_Name, Last_Name, job_title, job_id, dep_id, salary, manager_id)
+(emp_id, First_Name, Last_Name, job_title, job_id, dep_id, salary, manager_name)
 VALUES
 
-('1101', 'Mike', 'Bruno', 'Corectional Officer 2', '108', '2', '50000', '1202'),
-('1102', 'Taylor', 'Miller', 'Corectional Officer 3', '107', '2', '50000', '1201'),
-('1103', 'Donovan', 'Massenburg', 'Corectional Officer 3', '107', '3', '50000', '1203'),
-('1104', 'Nigel', 'Wilson', 'Corectional Officer 3', '107', '1', '50000', '1203'),
-('1105', 'Jamil', 'Jafarov', 'Corectional Officer 2', '108', '1', '50000', '1201'),
-('1106', 'Katrice', 'Kunningham', 'Corectional Officer 2', '108', '3', '50000', '1202'),
-('1107', 'Austin', 'Pearce', 'Corectional Officer 3', '107', '3', '50000', '1203'),
-('1108', 'Charles', 'Corbett', 'Corectional Officer 3', '107', '2', '50000', '1201'),
-('1109', 'Reginald', 'Morgan', 'Corectional Officer 2', '108', '2', '50000', '1202'),
-('1202', 'Joseph', 'Bowen', 'Corectional Sergeant 2', '106', '1', '60000', '1301'),
-('1201', 'Ten', 'Jones', 'Corectional Sergeant 3', '105', '3', '60000', '1301'),
-('1203', 'San', 'Hawkins', 'Corectional Sergeant 2', '106', '2', '60000', '1301'),
-('1301', 'Gary', 'Averett', 'Corectional LT', '102', '9', '70000', '1401'),
-('1401', 'Charles', 'Sanders', 'Corectional Captain', '101', '9', '80000', '1501');
+('1101', 'Mike', 'Bruno', 'Corectional Officer 2', '108', '2', '50000', 'Bowen'),
+('1102', 'Taylor', 'Miller', 'Corectional Officer 3', '107', '2', '50000', 'Jones'),
+('1103', 'Donovan', 'Massenburg', 'Corectional Officer 3', '107', '3', '50000', 'Hawkins'),
+('1104', 'Nigel', 'Wilson', 'Corectional Officer 3', '107', '1', '50000', 'Hawkins'),
+('1105', 'Jamil', 'Jafarov', 'Corectional Officer 2', '108', '1', '50000', 'Jones'),
+('1106', 'Katrice', 'Kunningham', 'Corectional Officer 2', '108', '3', '50000', 'Bowen'),
+('1107', 'Austin', 'Pearce', 'Corectional Officer 3', '107', '3', '50000', 'Hawkins'),
+('1108', 'Charles', 'Corbett', 'Corectional Officer 3', '107', '2', '50000', 'Jones'),
+('1109', 'Reginald', 'Morgan', 'Corectional Officer 2', '108', '2', '50000', 'Boewn'),
+('1202', 'Joseph', 'Bowen', 'Corectional Sergeant 2', '106', '1', '60000', 'Averett'),
+('1201', 'Ten', 'Jones', 'Corectional Sergeant 3', '105', '3', '60000', 'Averett'),
+('1203', 'San', 'Hawkins', 'Corectional Sergeant 2', '106', '2', '60000', 'Averett'),
+('1301', 'Gary', 'Averett', 'Corectional LT', '102', '6', '70000', 'Sanders'),
+('1401', 'Charles', 'Sanders', 'Corectional Captain', '101', '6', '80000', 'null');
 
 
 
