@@ -10,20 +10,19 @@ CREATE TABLE employee (
     First_Name VARCHAR(30) NOT NULL,
     Last_Name VARCHAR(30) NOT NULL,
     job_title VARCHAR(25) NOT NULL,
-    job_id INTEGER NOT NULL,
-    dep_id INTEGER NOT NULL,
+    dep_name VARCHAR(30) NOT NULL,
     salary INTEGER NOT NULL,
     manager_name VARCHAR(30)
 );
 
 CREATE TABLE department (
-    dep_id INTEGER AUTO_INCREMENT PRIMARY KEY REFERENCES employee(dep_id) ON DELETE SET NULL,
-    dep_name VARCHAR(20)
+    dep_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    dep_name VARCHAR(20) REFERENCES employee(dep_name) ON DELETE SET NULL
 ); 
 
 CREATE TABLE roles (
-    job_title VARCHAR(25) PRIMARY KEY NOT NULL,
-    job_id INTEGER NOT NULL REFERENCES employee(job_id) ON DELETE SET NULL,
-    dep_name VARCHAR(20),
+    job_title VARCHAR(25) NOT NULL REFERENCES employee(job_title) ON DELETE SET NULL,
+    job_id INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    dep_name VARCHAR(20) REFERENCES employee(dep_name) ON DELETE SET NULL,
     salary INTEGER
 );    

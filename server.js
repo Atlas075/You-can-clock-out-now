@@ -1,4 +1,3 @@
-
 const express = require("express");
 const inquirer = require("inquirer");
 const connection = require("./db/connection");
@@ -13,14 +12,12 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-var manager = [''];
-var roles = [''];
-var employees = [''];
-var department = [''];
+var manager = [""];
+var roles = [""];
+var employees = [""];
+var department = [""];
 
 const PORT = process.env.PORT || 3001;
-
-
 
 const promptUser = () => {
   return inquirer
@@ -40,7 +37,6 @@ const promptUser = () => {
           "Add A Role",
           "Add A Department",
           "Exit",
-
         ],
       },
     ])
@@ -50,13 +46,13 @@ const promptUser = () => {
           promptAllEmployees();
           break;
 
-        case "View All Employees By Department":
-          promptAllEmployeesByDepartment();
-          break;
+        // case "View All Employees By Department":
+        //   promptAllEmployeesByDepartment();
+        //   break;
 
-        case "View All Employees By Manager":
-          promptAllEmployeesByManager();
-          break;
+        // case "View All Employees By Manager":
+        //   promptAllEmployeesByManager();
+        //   break;
 
         case "View All Roles":
           promptAllRoles();
@@ -70,15 +66,15 @@ const promptUser = () => {
           promptAddEmployee();
           break;
 
-        case "Remove An Employee":
-          promptRemoveEmployee();
+        case "Update An Employees Role":
+          promptUpdateRole();
           break;
 
         case "Add A Role":
           promptAddRole();
           break;
 
-        case "Add A Departments":
+        case "Add A Department":
           promptAddDepartments();
           break;
 
@@ -118,12 +114,19 @@ const promptAddDepartments = () => {
       },
     ])
     .then((answer) => {
-      connection.query(`INSERT INTO department dep_name`);
-      values(`${answer.dep_name}`),
+      connection.query(
+        `INSERT INTO department (dep_name)
+      Values('${answer.dep_name}')`,
         (err, res) => {
           if (err) throw err;
           promptUser();
-        };
+          console.log(`
+      ===============================
+      A New Department Has Been Added
+      ===============================
+      `);
+        }
+      );
     });
 };
 
@@ -157,6 +160,28 @@ const promptAllRoles = () => {
 };
 
 const promptAddRole = () => {
+  let salaryArray = [];
+  let departmentArray = [];
+  connection.query(`SELECT * FROM department;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((departmentName) => {
+      departmentArray.push(departmentName.dep_name);
+    });
+    return departmentArray;
+  });
+
+  connection.query(`SELECT * FROM roles;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((salaryAmount) => {
+      salaryArray.push(salaryAmount.salary);
+    });
+    return salaryArray;
+  });
+
   return inquirer
     .prompt([
       {
@@ -165,32 +190,74 @@ const promptAddRole = () => {
         message: "Enter a new role",
       },
       {
-        type: "input",
-        name: "job_id",
-        message: "Enter a new role id ",
-      },
-      {
         type: "list",
         name: "dep_name",
         message: "Enter the department for this role",
-        choices: department,
+        choices: departmentArray,
       },
       {
-        type: "input",
+        type: "list",
         name: "salary",
-        message: "Enter a new department name",
+        message: "Select a Sallary. ",
+        choices: salaryArray,
       },
     ])
     .then((answer) => {
       connection.query(
-        `INSERT INTO roles job_title, job_id, dep_name, salary)
-      Values('${answer.job_title}', '${answer.job_id}', '${answer.dep_name}', ${answer.salary})`,
+        `INSERT INTO roles (job_title, dep_name, salary)
+      Values('${answer.job_title}', '${answer.dep_name}', ${answer.salary})`,
         (err, res) => {
           if (err) throw err;
           promptUser();
+          console.log(`
+      =============================
+      A New Role Has Been Added
+      =============================
+      `);
         }
       );
     });
+};
+
+const promptUpdateRole = () => {
+  let roleArray = [];
+  let employeeArray = [];
+
+  connection.query(`SELECT * FROM roles;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((updateRole) => {
+      updateRole.push(updateRole.job_title);
+    });
+    return roleArray;
+  });
+
+  connection.query(`SELECT * FROM employee;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((updateEmployee) => {
+      updateEmployee.push(updateEmployee.First_Name, updateEmployee.Last_Name);
+    });
+    return employeeArray;
+  });
+
+  return inquirer.prompt([
+    {
+      type: "list",
+      name: "update-name",
+      message: "Select a position. ",
+      choices: roleArray,
+    },
+
+    {
+      type: "list",
+      name: "job_title",
+      message: "Select a position. ",
+      choices: roleArray,
+    },
+  ]);
 };
 
 const promptAllEmployees = () => {
@@ -207,6 +274,17 @@ const promptAllEmployees = () => {
 };
 
 const promptAllEmployeesByDepartment = () => {
+  let depNameArray = [];
+
+  connection.query(`SELECT * FROM department;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((depName) => {
+      depNameArray.push(depName.dep_name);
+    });
+    return depNameArray;
+  });
   console.log(`
 =======================================
 Now viewing all Employees by Department
@@ -215,13 +293,13 @@ Now viewing all Employees by Department
   return inquirer
     .prompt({
       type: "list",
-      name: "manager",
-      message: "choose a department id",
-      choices: department,
+      name: "dep_name",
+      message: "choose a department",
+      choices: depNameArray,
     })
     .then((answer) => {
       connection.query(
-        `SELECT first_name, last_name FROM employee WHERE dep_id = ${answer.manager};`,
+        `SELECT first_name, last_name FROM employee WHERE dep_name = ${answer.dep_name};`,
         (err, res) => {
           if (err) throw err;
           console.table(res);
@@ -231,18 +309,18 @@ Now viewing all Employees by Department
     });
 };
 
-const promptAllEmployeesByManager = () => { 
-   let managerArray = []
+const promptAllEmployeesByManager = () => {
+  let managerArray = [];
 
   connection.query(`SELECT * FROM employee;`, (err, result) => {
     if (err) {
       console.log(err);
     }
-    result.map((managerName,) => {
-      managerArray.push(managerName.last_name)
-    })
-    return managerArray
-   })
+    result.map((managerName) => {
+      managerArray.push(managerName.Last_Name);
+    });
+    return managerArray;
+  });
   console.log(`
   ====================================
   Now viewing all Employees by Manager
@@ -269,31 +347,64 @@ const promptAllEmployeesByManager = () => {
 };
 
 const promptAddEmployee = () => {
-   let roleArray = []
-   let managerArray = []
+  let roleArray = [];
+  let managerArray = [];
+  let roleIdArray = [];
+  let depNameArray = [];
+  let salaryArray = [];
 
-   connection.query(`SELECT * FROM roles;`, (err, result) => {
+  connection.query(`SELECT * FROM roles;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((roleId) => {
+      roleIdArray.push(roleId.job_id);
+    });
+    return roleIdArray;
+  });
+
+  connection.query(`SELECT * FROM roles;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((salaryAmount) => {
+      salaryArray.push(salaryAmount.salary);
+    });
+    return salaryArray;
+  });
+
+  connection.query(`SELECT * FROM department;`, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    result.map((depName) => {
+      depNameArray.push(depName.dep_name);
+    });
+    return depNameArray;
+  });
+
+  connection.query(`SELECT * FROM roles;`, (err, result) => {
     if (err) {
       console.log(err);
     }
     result.map((roleName) => {
-      roleArray.push(roleName.job_title)
-    })
-    return roleArray
-   })
+      roleArray.push(roleName.job_title);
+    });
+    return roleArray;
+  });
 
-   connection.query(`SELECT * FROM employee;`, (err, result) => {
+  connection.query(`SELECT * FROM employee;`, (err, result) => {
     if (err) {
       console.log(err);
     }
-    result.map((managerName,) => {
-      managerArray.push(managerName.last_name)
-    })
-    return managerArray
-   })
+    result.map((managerName) => {
+      managerArray.push(managerName.Last_Name);
+    });
+    return managerArray;
+  });
 
   return inquirer
-  .prompt([
+    .prompt([
       {
         type: "input",
         name: "first_name",
@@ -308,14 +419,28 @@ const promptAddEmployee = () => {
 
       {
         type: "list",
-        name: "role",
+        name: "job_title",
         message: "Select a position. ",
         choices: roleArray,
       },
 
       {
         type: "list",
-        name: "manager",
+        name: "dep_name",
+        message: "Select a Department. ",
+        choices: depNameArray,
+      },
+
+      {
+        type: "list",
+        name: "salary",
+        message: "Select a Sallary. ",
+        choices: salaryArray,
+      },
+
+      {
+        type: "list",
+        name: "manager_name",
         message: "Select a manager. ",
         choices: managerArray,
       },
@@ -323,8 +448,8 @@ const promptAddEmployee = () => {
     .then((answer) => {
       if (answer.manager === "none") {
         connection.query(
-          `INSERT INTO employee (First_Name, Last_Name, job_title, last_name)
-      Values ('${answer.first_name}', '${answer.last_name}', '${answer.job_title}', '${answer.last_name}')`,
+          `INSERT INTO employee (first_Name, Last_Name, job_title, dep_name, salary, manager_name)
+      Values ('${answer.first_name}', '${answer.last_name}', '${answer.job_title}', '${answer.dep_name}', '${answer.salary}', '${answer.manager_name}')`,
           (err, res) => {
             if (err) throw err;
             promptUser();
@@ -332,14 +457,19 @@ const promptAddEmployee = () => {
         );
       } else {
         connection.query(
-          `INSERT INTO employee (First_Name, Last_Name, job_title, last_name)
-          Values ('${answer.First_Name}', '${answer.Last_Name}', '${answer.job_title}', '${answer.last_name}')`,
+          `INSERT INTO employee (first_Name, Last_Name, job_title, dep_name, salary, manager_name)
+          Values ('${answer.first_name}', '${answer.last_name}', '${answer.job_title}', '${answer.dep_name}', '${answer.salary}', '${answer.manager_name}')`,
           (err, res) => {
             if (err) throw err;
             promptUser();
           }
         );
       }
+      console.log(`
+      =============================
+      A New Employee Has Been Added
+      =============================
+      `);
     });
 };
 
@@ -357,7 +487,6 @@ connection.connect((err) => {
   console.log("Database connected.");
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    promptUser()
+    promptUser();
   });
 });
-
