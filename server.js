@@ -25,7 +25,7 @@ const promptUser = () => {
         choices: [
           "View All Employees",
           "View All Employees By Department",
-          "View All Employees By Manager",
+          // "View All Employees By Manager",
           "View All Roles",
           "View All Departments",
           "Add An Employee",
@@ -46,9 +46,9 @@ const promptUser = () => {
           promptAllEmployeesByDepartment();
           break;
 
-        case "View All Employees By Manager":
-          promptAllEmployeesByManager();
-          break;
+        // case "View All Employees By Manager":
+        //   promptAllEmployeesByManager();
+        //   break;
 
         case "View All Roles":
           promptAllRoles();
@@ -256,7 +256,7 @@ const promptUpdateRole = () => {
     .then((answer) => {
       const first = answer.update_name.slice(0, 2)
       connection.query (
-      `UPDATE employee SET job_title = ${answer.job_title} WHERE emp_id = ${first}`,
+      `UPDATE employee SET job_title = '${answer.job_title}' WHERE emp_id = '${first}'`,
       (err, res) => {
         if (err) throw err;
         promptUser();
@@ -308,7 +308,7 @@ Now viewing all Employees by Department
     })
     .then((answer) => {
       connection.query(
-        `SELECT first_name, last_name FROM employee WHERE dep_name = ${answer.dep_name};`,
+        `SELECT first_name, last_name FROM employee WHERE dep_name = '${answer.dep_name}';`,
         (err, res) => {
           if (err) throw err;
           console.table(res);
@@ -320,43 +320,51 @@ Now viewing all Employees by Department
 
 };
 
-const promptAllEmployeesByManager = () => {
-  let managerArray = [];
+// const promptAllEmployeesByManager = () => {
+//   let managerArray = [];
 
-  connection.query(`SELECT * FROM employee;`, (err, result) => {
-    if (err) {
-      console.log(err);
-    }
-    result.map((managerName) => {
-      managerArray.push(managerName.Last_Name);
-    });
-    return inquirer
-    .prompt({
-      type: "list",
-      name: "manager",
-      message: "choose a manager",
-      choices: managerArray,
-    })
-    .then((answer) => {
-      connection.query(
-        `SELECT first_name, last_name FROM employee WHERE manager_name = ${answer.manager};`,
-        (err, res) => {
-          if (err) throw err;
-          console.table(res);
-          promptUser();
-        }
-      );
-    });
-  })
+//   connection.query(`SELECT * FROM employee;`, (err, result) => {
+//     if (err) {
+//       console.log(err);
+//     }
+//     result.map((managerName) => {
+//       // const empId = managerName.emp_id
+//       // const empRole = managerName.job_title
+//       // const empFirst = managerName.First_Name
+//       const empLast = managerName.Last_Name
+//       const employeeMenuText = ` ${empLast}`
+//       managerArray.push(employeeMenuText);
+//     });
+//     return inquirer
+//     .prompt({
+//       type: "list",
+//       name: "manager",
+//       message: "choose a manager",
+//       choices: managerArray,
+//     })
+//     .then((answer) => {
+//       // const manager = answer.manager.slice(7,15)
+//       console.log(answer.manager)
+//       connection.query(
+//         `SELECT First_Name, Last_Name FROM employee WHERE manager_name = '${answer.manager}';`,
+//         (err, res) => {
+//           if (err) throw err;
+//           console.table(res);
+          
+//           promptUser();
+//         }
+//       );
+//     });
+//   })
 
-  console.log(`
-  ====================================
-  Now viewing all Employees by Manager
-  ====================================
-  `);
+//   console.log(`
+//   ====================================
+//   Now viewing all Employees by Manager
+//   ====================================
+//   `);
 
  
-};
+// };
 
 const promptAddEmployee = () => {
   let roleArray = [];
