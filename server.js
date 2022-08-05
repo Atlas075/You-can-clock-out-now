@@ -5,17 +5,13 @@ const apiRoutes = require("./routes/apiRoutes");
 
 const consoleTables = require("console.table");
 const { removeAllListeners } = require("process");
+const e = require("express");
 
 const app = express();
 
 // Express middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-
-var manager = [""];
-var roles = [""];
-var employees = [""];
-var department = [""];
 
 const PORT = process.env.PORT || 3001;
 
@@ -33,7 +29,7 @@ const promptUser = () => {
           "View All Roles",
           "View All Departments",
           "Add An Employee",
-          "Remove An Employee",
+          "Update An Employees Role",
           "Add A Role",
           "Add A Department",
           "Exit",
@@ -46,13 +42,13 @@ const promptUser = () => {
           promptAllEmployees();
           break;
 
-        // case "View All Employees By Department":
-        //   promptAllEmployeesByDepartment();
-        //   break;
+        case "View All Employees By Department":
+          promptAllEmployeesByDepartment();
+          break;
 
-        // case "View All Employees By Manager":
-        //   promptAllEmployeesByManager();
-        //   break;
+        case "View All Employees By Manager":
+          promptAllEmployeesByManager();
+          break;
 
         case "View All Roles":
           promptAllRoles();
@@ -86,10 +82,6 @@ const promptUser = () => {
       }
     });
 };
-
-// const promptManager = () => {
-//   connection.query(`SELECT`)
-// }
 
 const promptAllDepartments = () => {
   console.log(`
@@ -222,42 +214,61 @@ const promptAddRole = () => {
 const promptUpdateRole = () => {
   let roleArray = [];
   let employeeArray = [];
+  let empchooseArray = []
 
   connection.query(`SELECT * FROM roles;`, (err, result) => {
     if (err) {
       console.log(err);
     }
     result.map((updateRole) => {
-      updateRole.push(updateRole.job_title);
+      roleArray.push(updateRole.job_title);
     });
-    return roleArray;
-  });
-
-  connection.query(`SELECT * FROM employee;`, (err, result) => {
+   // return roleArray;
+   connection.query(`SELECT * FROM employee;`, (err, result) => {
     if (err) {
       console.log(err);
     }
     result.map((updateEmployee) => {
-      updateEmployee.push(updateEmployee.First_Name, updateEmployee.Last_Name);
+      const empId = updateEmployee.emp_id
+      const empRole = updateEmployee.job_title
+      const empFirst = updateEmployee.First_Name
+      const empLast = updateEmployee.Last_Name
+      const employeeMenuText = `${empId} ${empFirst} ${empLast} ${empRole}`
+      employeeArray.push(employeeMenuText);
+      
     });
-    return employeeArray;
+    //return employeeArray;
+    return inquirer.prompt([
+      {
+        type: "list",
+        name: "update_name",
+        message: "Select a Employee to Update. ",
+        choices: employeeArray,
+      },
+  
+      {
+        type: "list",
+        name: "job_title",
+        message: "What Position Would You Like to Change the Employee to. ",
+        choices: roleArray,
+      },
+    ])
+    .then((answer) => {
+      const first = answer.update_name.slice(0, 2)
+      connection.query (
+      `UPDATE employee SET job_title = ${answer.job_title} WHERE emp_id = ${first}`,
+      (err, res) => {
+        if (err) throw err;
+        promptUser();
+      }
+    );
+    }) 
+  });
   });
 
-  return inquirer.prompt([
-    {
-      type: "list",
-      name: "update-name",
-      message: "Select a position. ",
-      choices: roleArray,
-    },
+  
 
-    {
-      type: "list",
-      name: "job_title",
-      message: "Select a position. ",
-      choices: roleArray,
-    },
-  ]);
+  
 };
 
 const promptAllEmployees = () => {
@@ -283,9 +294,7 @@ const promptAllEmployeesByDepartment = () => {
     result.map((depName) => {
       depNameArray.push(depName.dep_name);
     });
-    return depNameArray;
-  });
-  console.log(`
+     console.log(`
 =======================================
 Now viewing all Employees by Department
 =======================================
@@ -307,6 +316,8 @@ Now viewing all Employees by Department
         }
       );
     });
+  });
+
 };
 
 const promptAllEmployeesByManager = () => {
@@ -319,15 +330,7 @@ const promptAllEmployeesByManager = () => {
     result.map((managerName) => {
       managerArray.push(managerName.Last_Name);
     });
-    return managerArray;
-  });
-  console.log(`
-  ====================================
-  Now viewing all Employees by Manager
-  ====================================
-  `);
-
-  return inquirer
+    return inquirer
     .prompt({
       type: "list",
       name: "manager",
@@ -336,7 +339,7 @@ const promptAllEmployeesByManager = () => {
     })
     .then((answer) => {
       connection.query(
-        `SELECT first_name, last_name FROM employee WHERE job_id = ${answer.last_name};`,
+        `SELECT first_name, last_name FROM employee WHERE manager_name = ${answer.manager};`,
         (err, res) => {
           if (err) throw err;
           console.table(res);
@@ -344,6 +347,15 @@ const promptAllEmployeesByManager = () => {
         }
       );
     });
+  })
+
+  console.log(`
+  ====================================
+  Now viewing all Employees by Manager
+  ====================================
+  `);
+
+ 
 };
 
 const promptAddEmployee = () => {
@@ -397,8 +409,14 @@ const promptAddEmployee = () => {
     if (err) {
       console.log(err);
     }
-    result.map((managerName) => {
-      managerArray.push(managerName.Last_Name);
+    result.map((employee) => {
+      const joinedString = "Hi" + "Donovan"
+      // employee.job_title
+      const jobTitle = employee.job_title
+      const lastName = employee.Last_Name
+     // const menuText = jobTitle + " " + lastName
+      const menuText = `${jobTitle} ${lastName}`
+      managerArray.push(menuText);
     });
     return managerArray;
   });
